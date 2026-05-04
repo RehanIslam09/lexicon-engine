@@ -6,11 +6,12 @@ Update this file after every meaningful implementation change.
 
 - Design System — **COMPLETE** ✓
 - Editor Chrome — **COMPLETE** ✓
+- Auth (Supabase SSR) — **COMPLETE** ✓
 - Next: Smart Editor Core (TipTap + Yjs)
 
 ## Current Goal
 
-- Begin `03-smart-editor` when the spec is created.
+- Begin `04-smart-editor` when the spec is created.
 - Next step: initialize TipTap + ProseMirror in the `/write` route (Client Component).
 
 ## Completed
@@ -43,13 +44,34 @@ Update this file after every meaningful implementation change.
   - `npx tsc --noEmit` — ✅ zero errors.
   - `npm run build` — ✅ clean. Route `/write` appears in build output.
 
+- [03-auth] ✅ **Auth Implementation (Supabase SSR + PKCE)**
+  - `@supabase/ssr` + `@supabase/supabase-js` — already in `package.json`.
+  - `utils/supabase/client.ts` — `createBrowserClient()` for Client Components.
+  - `utils/supabase/server.ts` — `createServerClient()` for Server Components/Actions. Uses `getAll`/`setAll` cookie pattern. Always call `getUser()` — never trust `getSession()` alone.
+  - `utils/supabase/middleware.ts` — Session-refresh helper. Writes refreshed tokens back to response via `setAll`. Applies cache-busting headers.
+  - `middleware.ts` — Root proxy. Refreshes session on every request. Route table:
+    - Public: `/login`, `/sign-up`, `/auth/callback`, `/auth/auth-error`
+    - Protected: `/editor`, `/map`, `/settings`, `/write`, `/api` → redirect to `/login`
+    - Root (`/`): Authenticated → `/editor`, Unauthenticated → `/login`
+  - `app/auth/callback/route.ts` — PKCE `exchangeCodeForSession()` handler. Redirects to `/editor` on success, `/auth/auth-error` on failure.
+  - `app/(auth)/layout.tsx` — Minimal centered layout for all auth pages.
+  - `app/(auth)/login/page.tsx` — Cyber-Monolith login form. No Supabase UI kit. CSS vars only, `rounded-none`, Hazard Orange focus, inline errors.
+  - `app/(auth)/sign-up/page.tsx` — Sign-up form with email confirmation success state. PKCE redirect to `/auth/callback`.
+  - `app/(auth)/auth-error/page.tsx` — Error page with mapped error messages. Wrapped in Suspense for `useSearchParams()`.
+  - `app/editor/page.tsx` — Protected route with server-side auth double-check via `getUser()`.
+  - `app/page.tsx` — Server-side root redirect (auth fallback on top of middleware).
+  - `store/ui-store.ts` — Added `clearAll()` action. Called on logout to prevent cross-session Zustand state leakage.
+  - `components/editor/editor-navbar.tsx` — Added User Menu (right section): Account dropdown with "Profile Settings" (→ `/settings`) and "Logout" (triggers `signOut()` + `clearAll()` + redirect).
+  - `npx tsc --noEmit` — ✅ zero errors.
+  - `npm run build` — ✅ clean. All 7 routes appear in build output.
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
-- [03-smart-editor] Smart Editor Core:
+- [04-smart-editor] Smart Editor Core:
   - TipTap + ProseMirror setup in `/write` route (Client Component).
   - Yjs CRDT binding via `y-prosemirror`.
   - Fragmented chapter loading (`Y.Map` of chapters, only active chapter mounted).
@@ -59,12 +81,15 @@ Update this file after every meaningful implementation change.
 
 - Tailwind CSS v4 compatibility with shadcn/ui CLI — **Resolved**. shadcn v4.6.0 + Tailwind v4 work together via `@import "shadcn/tailwind.css"`.
 - Zero border-radius strategy — **Resolved**. Achieved via `--radius: 0px` CSS variable and `border-radius: 0 !important` in `@layer base`, keeping `components/ui/*` files unmodified per workflow rules.
+- Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts` — **Noted but not blocking**. The file still works correctly. Will rename to `proxy.ts` when spec calls for it.
 
 ## Architecture Decisions
 
 - **Cyber-Monolith Theme**: Strictly dark mode, zero border radius, hazard orange accents (`#FF4D00`). Applied entirely via CSS variables in `globals.css`. Hardcoded hex values are forbidden in component files.
 - **Local-First CSS**: All colors reference CSS custom properties. Tailwind `@theme inline` block bridges CSS vars to Tailwind utility classes.
 - **Protected UI Files**: `components/ui/*` are left unmodified after shadcn CLI generation. Theme overrides are applied globally through `globals.css` variables.
+- **Auth Security Model**: `supabase.auth.getUser()` is used exclusively for server-side identity verification — `getSession()` is never used for authorization decisions. Middleware is the primary guard; Server Components add defense-in-depth.
+- **Logout State Wipe**: `clearAll()` in Zustand is triggered on logout, resetting all persisted UI state to prevent cross-session leakage.
 
 ## Session Notes (2026-05-04)
 
@@ -77,3 +102,10 @@ Update this file after every meaningful implementation change.
 - Sidebar uses `translateX` — GPU-accelerated, no DOM reflow on toggle.
 - `/write` route registered; appears in `next build` output as static route.
 - `npx tsc --noEmit` — zero errors. `npm run build` — clean.
+- Auth spec `03-auth.md` fully implemented and verified.
+- Supabase SSR wired: `utils/supabase/{client,server,middleware}.ts` created.
+- PKCE flow: sign-up → email confirmation → `/auth/callback` → `/editor`.
+- All 7 auth routes registered in build output (`/login`, `/sign-up`, `/auth/callback`, `/auth/auth-error`, `/editor`, `/`, `/write`).
+- Middleware (proxy) refreshes sessions on every request; route table enforces auth.
+- `npx tsc --noEmit` — zero errors. `npm run build` — exit code 0.
+- NOTE: Next.js 16 shows deprecation warning for `middleware.ts` → rename to `proxy.ts` in a future session.

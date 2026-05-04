@@ -1,21 +1,18 @@
-"use client";
+'use client';
 
 /**
- * project-sidebar.tsx
- * Overlay sidebar that slides in from the left.
+ * project-sidebar.tsx — HIGH-FIDELITY REFACTOR
+ * Cyber-Monolith Standard: overlay panel, GPU-accelerated, zero-radius.
  *
- * Design invariants (from 02-editor.md):
- *  - OVERLAY: floats above editor canvas, does NOT push content.
- *  - GPU-accelerated: uses `translateX` transform, never `left` or `width`.
- *  - Z-index: z-50  (backdrop at z-40)
- *  - Background: solid bg-[--bg-surface]  (no content bleed-through)
- *  - Borders: 1px solid --border-default  (brutalist, no shadows)
+ * Design upgrades:
+ * - Tabs: invert-on-active physical toggle feel
+ * - EmptyPlaceholder: SVG grid + terminal-style message
+ * - New Project: ghost outline → solid fill transition
  */
 
-import { X, Plus } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { X, Plus, FolderOpen, Users, Terminal } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ProjectSidebarProps {
   isOpen: boolean;
@@ -25,19 +22,19 @@ interface ProjectSidebarProps {
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   return (
     <>
-      {/* ── Backdrop (z-40, below sidebar) ── */}
+      {/* ── Backdrop ── */}
       <div
         aria-hidden="true"
         onClick={onClose}
         className={`
           fixed inset-0 z-40
-          bg-black/60
           transition-opacity duration-200
-          ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+          ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
         `}
+        style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
       />
 
-      {/* ── Sidebar panel (z-50) ── */}
+      {/* ── Sidebar panel ── */}
       <aside
         aria-label="Project sidebar"
         className={`
@@ -45,40 +42,52 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           w-72
           z-50
           flex flex-col
-          bg-[--bg-surface]
           border-r border-[--border-default]
           transition-transform duration-200 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
+        style={{ backgroundColor: 'var(--bg-surface)' }}
       >
         {/* ── Header ── */}
         <div
           className="
             flex items-center justify-between
-            h-12
+            h-10
             px-4
             border-b border-[--border-default]
             flex-shrink-0
           "
         >
-          <span className="text-sm font-semibold tracking-widest uppercase text-[--text-primary]">
-            Projects
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
+          <div className="flex items-center gap-2">
+            <span
+              className="text-[9px] font-mono tracking-[0.35em] uppercase"
+              style={{ color: 'var(--accent-primary)' }}
+            >
+              Projects
+            </span>
+            <span
+              className="text-[9px] font-mono px-1 py-0.5 border"
+              style={{
+                color: 'var(--text-muted)',
+                borderColor: 'var(--border-default)',
+              }}
+            >
+              LOCAL
+            </span>
+          </div>
+          <button
             aria-label="Close sidebar"
             onClick={onClose}
             className="
-              h-7 w-7
+              flex items-center justify-center
+              h-6 w-6
               text-[--text-muted]
-              hover:bg-[--accent-muted]
-              hover:text-[--accent-primary]
-              transition-colors duration-150
+              hover:bg-[--accent-primary] hover:text-[--bg-base]
+              transition-colors duration-100
             "
           >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </Button>
+            <X className="h-3.5 w-3.5" strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* ── Tabs ── */}
@@ -86,113 +95,142 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           <TabsList
             className="
               flex w-full
-              bg-transparent
-              border-b border-[--border-default]
-              rounded-none
-              px-0
+              rounded-none px-0
               flex-shrink-0
+              border-b border-[--border-default]
+              h-9
             "
+            style={{ backgroundColor: 'transparent' }}
           >
             <TabsTrigger
               value="my-projects"
               className="
-                flex-1
-                text-xs uppercase tracking-widest
-                text-[--text-muted]
-                rounded-none
-                border-b-2 border-transparent
-                data-[state=active]:border-[--accent-primary]
-                data-[state=active]:text-[--accent-primary]
-                data-[state=active]:bg-transparent
-                hover:bg-[--accent-muted]
-                hover:text-[--accent-primary]
-                transition-colors duration-150
-                py-3
+                flex-1 flex items-center justify-center gap-1.5
+                h-full
+                text-[9px] font-mono tracking-[0.25em] uppercase
+                rounded-none border-0
+                transition-colors duration-100
+                data-[state=active]:bg-[--accent-primary] data-[state=active]:text-[--bg-base]
+                data-[state=inactive]:text-[--text-muted] data-[state=inactive]:hover:bg-[--accent-muted] data-[state=inactive]:hover:text-[--accent-primary]
               "
             >
+              <FolderOpen className="h-3 w-3" strokeWidth={1.5} />
               My Projects
             </TabsTrigger>
+            <div
+              className="w-px self-stretch"
+              style={{ backgroundColor: 'var(--border-default)' }}
+            />
             <TabsTrigger
               value="shared"
               className="
-                flex-1
-                text-xs uppercase tracking-widest
-                text-[--text-muted]
-                rounded-none
-                border-b-2 border-transparent
-                data-[state=active]:border-[--accent-primary]
-                data-[state=active]:text-[--accent-primary]
-                data-[state=active]:bg-transparent
-                hover:bg-[--accent-muted]
-                hover:text-[--accent-primary]
-                transition-colors duration-150
-                py-3
+                flex-1 flex items-center justify-center gap-1.5
+                h-full
+                text-[9px] font-mono tracking-[0.25em] uppercase
+                rounded-none border-0
+                transition-colors duration-100
+                data-[state=active]:bg-[--accent-primary] data-[state=active]:text-[--bg-base]
+                data-[state=inactive]:text-[--text-muted] data-[state=inactive]:hover:bg-[--accent-muted] data-[state=inactive]:hover:text-[--accent-primary]
               "
             >
+              <Users className="h-3 w-3" strokeWidth={1.5} />
               Shared
             </TabsTrigger>
           </TabsList>
 
-          {/* ── My Projects — empty placeholder ── */}
           <TabsContent value="my-projects" className="flex-1 overflow-hidden m-0">
             <ScrollArea className="h-full">
-              <EmptyPlaceholder message="No projects yet." hint="Create your first project below." />
+              <EmptyBuffer
+                code="ERR_NO_PROJECTS"
+                message="No projects in local buffer."
+                hint="Initialize a new project to begin writing."
+              />
             </ScrollArea>
           </TabsContent>
 
-          {/* ── Shared — empty placeholder ── */}
           <TabsContent value="shared" className="flex-1 overflow-hidden m-0">
             <ScrollArea className="h-full">
-              <EmptyPlaceholder
-                message="No shared projects."
-                hint="Projects shared with you will appear here."
+              <EmptyBuffer
+                code="ERR_NO_SHARED"
+                message="Collaboration buffer empty."
+                hint="Projects shared with you will sync here."
               />
             </ScrollArea>
           </TabsContent>
         </Tabs>
 
-        {/* ── Footer: New Project button ── */}
-        <div
-          className="
-            flex-shrink-0
-            p-4
-            border-t border-[--border-default]
-          "
-        >
-          <Button
+        {/* ── Footer ── */}
+        <div className="flex-shrink-0 p-3 border-t border-[--border-default]">
+          <button
             className="
-              w-full
+              group
+              w-full h-9
               flex items-center justify-center gap-2
-              bg-[--accent-primary]
-              text-[--bg-base]
-              hover:opacity-90
-              transition-opacity duration-150
-              text-xs font-semibold tracking-widest uppercase
-              h-10
+              border border-[--accent-primary]
+              text-[--accent-primary] bg-transparent
+              hover:bg-[--accent-primary] hover:text-[--bg-base]
+              transition-colors duration-100
+              text-[10px] font-mono tracking-[0.25em] uppercase
             "
           >
-            <Plus className="h-4 w-4" strokeWidth={1.5} />
+            <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
             New Project
-          </Button>
+          </button>
         </div>
       </aside>
     </>
   );
 }
 
-/* ── Private sub-component ── */
+/* ── EmptyBuffer: Terminal-style empty state with SVG dot grid ── */
 
-function EmptyPlaceholder({
-  message,
-  hint,
-}: {
-  message: string;
-  hint: string;
-}) {
+function EmptyBuffer({ code, message, hint }: { code: string; message: string; hint: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-48 px-6 text-center">
-      <p className="text-sm text-[--text-primary] mb-1">{message}</p>
-      <p className="text-xs text-[--text-muted]">{hint}</p>
+    <div className="relative flex flex-col items-center justify-center h-64 overflow-hidden">
+      {/* SVG dot grid background */}
+      <svg
+        className="absolute inset-0 w-full h-full opacity-[0.06]"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="dot-grid" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="1" fill="#EDEDED" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dot-grid)" />
+      </svg>
+
+      {/* Terminal icon */}
+      <div
+        className="relative flex items-center justify-center w-8 h-8 border mb-4"
+        style={{ borderColor: 'var(--border-default)' }}
+      >
+        <Terminal className="h-4 w-4" strokeWidth={1.5} style={{ color: 'var(--text-muted)' }} />
+      </div>
+
+      {/* Error code */}
+      <p
+        className="relative text-[9px] font-mono tracking-[0.25em] uppercase mb-2"
+        style={{ color: 'var(--accent-primary)' }}
+      >
+        {code}
+      </p>
+
+      {/* Message */}
+      <p
+        className="relative text-xs font-mono mb-1 text-center px-6"
+        style={{ color: 'var(--text-primary)' }}
+      >
+        {message}
+      </p>
+
+      {/* Hint */}
+      <p
+        className="relative text-[10px] font-mono text-center px-6 leading-relaxed"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        {hint}
+      </p>
     </div>
   );
 }

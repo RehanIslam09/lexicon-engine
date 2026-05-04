@@ -1,9 +1,20 @@
-import { Button } from '../components/ui/button';
+/**
+ * app/page.tsx — Root route
+ * Middleware handles the primary redirect (/ → /editor or /login).
+ * This server component is a final fallback that should rarely render.
+ */
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Home() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <h1>Scribe OS</h1>
-    </div>
-  );
+export default async function RootPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/editor");
+  } else {
+    redirect("/login");
+  }
 }
