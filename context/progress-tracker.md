@@ -5,12 +5,13 @@ Update this file after every meaningful implementation change.
 ## Current Phase
 
 - Design System — **COMPLETE** ✓
+- Editor Chrome — **COMPLETE** ✓
 - Next: Smart Editor Core (TipTap + Yjs)
 
 ## Current Goal
 
-- Begin `02-smart-editor` when the spec is created.
-- Next step: initialize TipTap + ProseMirror in a Client Component (`/write` route).
+- Begin `03-smart-editor` when the spec is created.
+- Next step: initialize TipTap + ProseMirror in the `/write` route (Client Component).
 
 ## Completed
 
@@ -33,13 +34,22 @@ Update this file after every meaningful implementation change.
   - `npm run build` — ✅ passes with zero TypeScript errors.
   - `npx tsc --noEmit` — ✅ zero errors.
 
+- [02-editor] ✅ **Editor Chrome Implementation**
+  - `zustand` — installed. `persist` middleware wired for localStorage survival across refresh.
+  - `store/ui-store.ts` — Zustand slice (`sidebarOpen`, `setSidebarOpen`, `toggleSidebar`) with `persist` middleware. Key: `lexicon-ui-state`.
+  - `components/editor/editor-navbar.tsx` — Fixed `h-12` navbar, `z-50`, `bg-[--bg-surface]`, 1px brutalist bottom border. Sidebar toggle uses `PanelLeftOpen`/`PanelLeftClose` icons (Lucide, `1.5px` stroke). Reads/writes Zustand directly.
+  - `components/editor/project-sidebar.tsx` — Overlay sidebar (`w-72`, `z-50`, `top-12`). Slides via `translateX` (GPU-accelerated, zero reflow). Backdrop at `z-40`. shadcn `Tabs` with "My Projects" / "Shared" tabs, Hazard Orange active indicator. Empty placeholder states in both tabs. Full-width "New Project" button with `Plus` icon at footer.
+  - `app/write/page.tsx` — `/write` Client Component shell. Wires `EditorNavbar` + `ProjectSidebar`. Editor canvas placeholder ready for TipTap.
+  - `npx tsc --noEmit` — ✅ zero errors.
+  - `npm run build` — ✅ clean. Route `/write` appears in build output.
+
 ## In Progress
 
 - None.
 
 ## Next Up
 
-- [02-smart-editor] Smart Editor Core:
+- [03-smart-editor] Smart Editor Core:
   - TipTap + ProseMirror setup in `/write` route (Client Component).
   - Yjs CRDT binding via `y-prosemirror`.
   - Fragmented chapter loading (`Y.Map` of chapters, only active chapter mounted).
@@ -62,3 +72,8 @@ Update this file after every meaningful implementation change.
 - All 7 shadcn components import cleanly; `cn()` works correctly.
 - No default light styling — `globals.css` forces dark mode exclusively.
 - Build is clean: `next build` succeeds, TypeScript strict mode passes.
+- Editor chrome spec `02-editor.md` fully implemented and verified.
+- `zustand` installed. Sidebar state persists to `localStorage` across page refresh.
+- Sidebar uses `translateX` — GPU-accelerated, no DOM reflow on toggle.
+- `/write` route registered; appears in `next build` output as static route.
+- `npx tsc --noEmit` — zero errors. `npm run build` — clean.
