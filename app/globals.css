@@ -1,26 +1,189 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────
+   Lexicon Engine — Cyber-Monolith Design System
+   All values in CSS custom properties.
+   Hardcoded hex values are FORBIDDEN.
+───────────────────────────────────────────── */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    /* Tailwind theme bridge — maps CSS vars to Tailwind color utilities */
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+    --font-mono: var(--font-mono);
+
+    --color-background:         var(--background);
+    --color-foreground:         var(--foreground);
+    --color-card:               var(--card);
+    --color-card-foreground:    var(--card-foreground);
+    --color-popover:            var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary:            var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary:          var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted:              var(--muted);
+    --color-muted-foreground:   var(--muted-foreground);
+    --color-accent:             var(--accent);
+    --color-accent-foreground:  var(--accent-foreground);
+    --color-destructive:        var(--destructive);
+    --color-border:             var(--border);
+    --color-input:              var(--input);
+    --color-ring:               var(--ring);
+
+    --color-sidebar:                    var(--sidebar);
+    --color-sidebar-foreground:         var(--sidebar-foreground);
+    --color-sidebar-primary:            var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent:             var(--sidebar-accent);
+    --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+    --color-sidebar-border:             var(--sidebar-border);
+    --color-sidebar-ring:               var(--sidebar-ring);
+
+    /* ── Cyber-Monolith brand tokens (Tailwind utilities) ── */
+    --color-bg-base:        var(--bg-base);
+    --color-bg-surface:     var(--bg-surface);
+    --color-text-primary:   var(--text-primary);
+    --color-text-muted:     var(--text-muted);
+    --color-accent-primary: var(--accent-primary);
+    --color-accent-muted:   var(--accent-muted);
+    --color-border-default: var(--border-default);
+    --color-state-error:    var(--state-error);
+    --color-state-success:  var(--state-success);
+
+    /* Radius — 0 enforces Cyber-Monolith brutalism across all shadcn components */
+    --radius-sm: 0px;
+    --radius-md: 0px;
+    --radius-lg: 0px;
+    --radius-xl: 0px;
+    --radius-2xl: 0px;
+    --radius-3xl: 0px;
+    --radius-4xl: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─────────────────────────────────────────────
+   Root token definitions
+   Single source of truth. Forced dark — no light mode.
+───────────────────────────────────────────── */
+:root,
+.dark {
+    /* ── Cyber-Monolith Design Tokens ── */
+    --bg-base:        #0A0A0A;  /* Deep carbon black. The void.                       */
+    --bg-surface:     #141414;  /* Slightly elevated panels (sidebars, cards).         */
+    --text-primary:   #EDEDED;  /* High-contrast off-white for prose and headings.     */
+    --text-muted:     #878787;  /* Concrete gray for metadata, timestamps, and hints.  */
+    --accent-primary: #FF4D00;  /* Phosphor/Hazard Orange. Sparingly for active states.*/
+    --accent-muted:   #FF4D0033;/* 20% opacity orange for hover states or selections.  */
+    --border-default: #2A2A2A;  /* Harsh, visible structural lines.                   */
+    --state-error:    #FF2A2A;  /* Pure crimson for destructive actions/logic errors.  */
+    --state-success:  #00E676;  /* Toxic green for successful saves/syncs.             */
+
+    /* ── shadcn/ui semantic mappings → Cyber-Monolith values ── */
+    --background:         var(--bg-base);
+    --foreground:         var(--text-primary);
+    --card:               var(--bg-surface);
+    --card-foreground:    var(--text-primary);
+    --popover:            var(--bg-surface);
+    --popover-foreground: var(--text-primary);
+    --primary:            var(--accent-primary);
+    --primary-foreground: var(--bg-base);
+    --secondary:          var(--bg-surface);
+    --secondary-foreground: var(--text-primary);
+    --muted:              var(--bg-surface);
+    --muted-foreground:   var(--text-muted);
+    --accent:             var(--accent-muted);
+    --accent-foreground:  var(--accent-primary);
+    --destructive:        var(--state-error);
+    --border:             var(--border-default);
+    --input:              var(--border-default);
+    --ring:               var(--accent-primary);
+
+    /* ── Radius: zero ── */
+    --radius: 0px;
+
+    /* ── Sidebar ── */
+    --sidebar:                    var(--bg-surface);
+    --sidebar-foreground:         var(--text-primary);
+    --sidebar-primary:            var(--accent-primary);
+    --sidebar-primary-foreground: var(--bg-base);
+    --sidebar-accent:             var(--accent-muted);
+    --sidebar-accent-foreground:  var(--accent-primary);
+    --sidebar-border:             var(--border-default);
+    --sidebar-ring:               var(--accent-primary);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─────────────────────────────────────────────
+   Base layer resets
+───────────────────────────────────────────── */
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+        /* Force zero border radius everywhere — complements --radius: 0px */
+        border-radius: 0 !important;
+    }
+
+    body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: var(--font-sans), system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    html {
+        @apply font-sans;
+        /* Force dark — Cyber-Monolith has no light mode */
+        color-scheme: dark;
+    }
+
+    /* ── Scrollbar — styled to match theme ── */
+    ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+
+    /* ── Selection ── */
+    ::selection {
+        background-color: var(--accent-muted);
+        color: var(--text-primary);
+    }
+}
+
+/* ─────────────────────────────────────────────
+   Utility extensions — brand-specific helpers
+   Use these via className, not via hardcoded colors.
+───────────────────────────────────────────── */
+@layer utilities {
+    /* Hazard Orange accent text */
+    .text-accent { color: var(--accent-primary); }
+
+    /* Muted accent background (hover states, selections) */
+    .bg-accent-muted { background-color: var(--accent-muted); }
+
+    /* Structural border using the brand border token */
+    .border-structural { border-color: var(--border-default); }
+
+    /* Mono font for entity tags and node IDs */
+    .font-mono { font-family: var(--font-mono), 'JetBrains Mono', monospace; }
+
+    /* The harsh tri-pane separator */
+    .panel-border-r { border-right: 1px solid var(--border-default); }
+    .panel-border-l { border-left:  1px solid var(--border-default); }
+    .panel-border-b { border-bottom: 1px solid var(--border-default); }
+
+    /* Editor canvas constraint */
+    .prose-constrained { max-width: 65ch; }
 }
